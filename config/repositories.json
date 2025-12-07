@@ -1,0 +1,72 @@
+{
+  "repositories": [
+    {
+      "repo": "patelmm79/vllm-container-ngc",
+      "scan_patterns": ["deployment", "docker", "github_actions"]
+    },
+    {
+      "repo": "patelmm79/agentic-log-attacker",
+      "scan_patterns": ["deployment", "api_client", "configuration"]
+    },
+    {
+      "repo": "patelmm79/resume-customizer",
+      "scan_patterns": ["deployment", "api_client"]
+    },
+    {
+      "repo": "patelmm79/synthetic-log-generator",
+      "scan_patterns": ["deployment", "api_client"]
+    },
+    {
+      "repo": "patelmm79/vllm-container-coder",
+      "scan_patterns": ["deployment", "docker"]
+    }
+  ],
+  "pattern_types": {
+    "deployment": {
+      "description": "GCP deployment scripts, Cloud Run configs, Docker configurations",
+      "file_patterns": ["deploy*.sh", "cloudbuild.yaml", "Dockerfile", "docker-compose.yml"],
+      "similarity_threshold": 0.75,
+      "extraction_priority": "high"
+    },
+    "api_client": {
+      "description": "HTTP client implementations, API wrappers, authentication patterns",
+      "file_patterns": ["*client.py", "*api*.py", "client/*.py", "api/*.py"],
+      "similarity_threshold": 0.70,
+      "extraction_priority": "medium"
+    },
+    "github_actions": {
+      "description": "Reusable workflows, CI/CD patterns, deployment workflows",
+      "file_patterns": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
+      "similarity_threshold": 0.70,
+      "extraction_priority": "medium"
+    },
+    "configuration": {
+      "description": "Config management, environment variables, secrets handling",
+      "file_patterns": ["config/*.py", "*config*.py", ".env.example"],
+      "similarity_threshold": 0.65,
+      "extraction_priority": "low"
+    }
+  },
+  "extraction_recommendations": {
+    "high_similarity": {
+      "threshold": 0.85,
+      "action": "create_shared_library",
+      "urgency": "high"
+    },
+    "medium_similarity": {
+      "threshold": 0.70,
+      "action": "consider_extraction",
+      "urgency": "medium"
+    },
+    "low_similarity": {
+      "threshold": 0.50,
+      "action": "document_pattern",
+      "urgency": "low"
+    }
+  },
+  "notification_settings": {
+    "create_github_issues": true,
+    "post_to_dev_nexus": true,
+    "webhook_url": null
+  }
+}
