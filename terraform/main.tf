@@ -84,8 +84,20 @@ resource "google_secret_manager_secret" "db_password" {
   depends_on = [google_project_service.secretmanager_api]
 }
 
-# Note: You need to manually add the secret value:
-# echo -n "your-db-password" | gcloud secrets versions add PATTERN_MINER_DB_PASSWORD --data-file=-
+# Automatically add the password value to the secret
+resource "null_resource" "add_db_password_version" {
+  count = var.use_database && var.create_postgres_vm && var.postgres_vm_password != "" ? 1 : 0
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo -n "${var.postgres_vm_password}" | gcloud secrets versions add ${var.db_password_secret} --data-file=- --project=${var.project_id}
+    EOT
+  }
+
+  depends_on = [
+    google_secret_manager_secret.db_password
+  ]
+}
 
 # Reference existing secret if not creating new one
 data "google_secret_manager_secret" "db_password_existing" {
@@ -263,7 +275,8 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
     google_project_service.run_api,
     google_secret_manager_secret_iam_member.github_token_access,
     google_secret_manager_secret_iam_member.anthropic_key_access,
-    null_resource.build_image
+    null_resource.build_image,
+    null_resource.add_db_password_version
   ]
 }
 
