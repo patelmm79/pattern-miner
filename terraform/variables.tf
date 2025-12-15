@@ -121,9 +121,9 @@ variable "db_user" {
 }
 
 variable "db_password_secret" {
-  description = "Secret Manager secret name for database password (shared with dev-nexus)"
+  description = "Secret Manager secret name for database password"
   type        = string
-  default     = "POSTGRES_PASSWORD"
+  default     = "PATTERN_MINER_DB_PASSWORD"
 }
 
 variable "vpc_connector" {

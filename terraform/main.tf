@@ -53,12 +53,27 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
   depends_on = [google_project_service.secretmanager_api]
 }
 
-# Note: Database password secret (POSTGRES_PASSWORD) is shared with dev-nexus
-# It should already exist in Secret Manager. If not, create it:
-# echo -n "your-db-password" | gcloud secrets create POSTGRES_PASSWORD --data-file=-
+# Database password secret
+# Create new secret if deploying standalone PostgreSQL VM
+# Otherwise, reference existing secret (e.g., shared with dev-nexus)
 
-data "google_secret_manager_secret" "db_password" {
-  count     = var.use_database ? 1 : 0
+resource "google_secret_manager_secret" "db_password" {
+  count     = var.use_database && var.create_postgres_vm ? 1 : 0
+  secret_id = var.db_password_secret
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager_api]
+}
+
+# Note: You need to manually add the secret value:
+# echo -n "your-db-password" | gcloud secrets versions add PATTERN_MINER_DB_PASSWORD --data-file=-
+
+# Reference existing secret if not creating new one
+data "google_secret_manager_secret" "db_password_existing" {
+  count     = var.use_database && !var.create_postgres_vm ? 1 : 0
   secret_id = var.db_password_secret
 }
 
@@ -88,7 +103,7 @@ resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
 
 resource "google_secret_manager_secret_iam_member" "db_password_access" {
   count     = var.use_database ? 1 : 0
-  secret_id = data.google_secret_manager_secret.db_password[0].id
+  secret_id = var.create_postgres_vm ? google_secret_manager_secret.db_password[0].id : data.google_secret_manager_secret.db_password_existing[0].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.pattern_miner.email}"
 }
@@ -217,7 +232,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
           name = "DB_PASSWORD"
           value_source {
             secret_key_ref {
-              secret  = data.google_secret_manager_secret.db_password[0].secret_id
+              secret  = var.create_postgres_vm ? google_secret_manager_secret.db_password[0].secret_id : data.google_secret_manager_secret.db_password_existing[0].secret_id
               version = "latest"
             }
           }

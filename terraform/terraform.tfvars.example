@@ -54,7 +54,8 @@ enable_pgvector = false  # Set true if you need vector similarity search
 # Database settings
 db_name = "pattern_miner"
 db_user = "pattern_miner"
-db_password_secret = "PATTERN_MINER_DB_PASSWORD"
+db_password_secret = "PATTERN_MINER_DB_PASSWORD"  # Secret name (not the password itself!)
+postgres_vm_password = "CHANGE-ME-SECURE-PASSWORD"  # Actual password value
 
 # VPC Configuration
 create_vpc = true  # Creates new VPC network
