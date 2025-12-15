@@ -43,31 +43,45 @@ gcloud secrets describe ANTHROPIC_API_KEY
 
 ## Deployment Workflow
 
-### Option 1: Create Secrets First (Traditional)
+### Option 1: Create Secrets First (Recommended)
 
 ```bash
-# 1. Create secrets manually
+# 1. Create secrets with values
 echo -n "ghp_token" | gcloud secrets create GITHUB_TOKEN --data-file=-
 echo -n "sk-ant-key" | gcloud secrets create ANTHROPIC_API_KEY --data-file=-
 echo -n "db-password" | gcloud secrets create PATTERN_MINER_DB_PASSWORD --data-file=-
 
-# 2. Deploy with Terraform
+# 2. Deploy with Terraform (uses existing secrets)
 terraform apply
 ```
 
-### Option 2: Let Terraform Create Secrets (Recommended)
+### Option 2: Let Terraform Create Secrets
 
 ```bash
-# 1. Deploy with Terraform (creates empty secrets)
+# 1. Set create_secrets=true in terraform.tfvars
+create_secrets = true
+
+# 2. Deploy with Terraform (creates empty secrets)
 terraform apply
 
-# 2. Add secret values
+# 3. Add secret values
 echo -n "ghp_token" | gcloud secrets versions add GITHUB_TOKEN --data-file=-
 echo -n "sk-ant-key" | gcloud secrets versions add ANTHROPIC_API_KEY --data-file=-
 echo -n "db-password" | gcloud secrets versions add PATTERN_MINER_DB_PASSWORD --data-file=-
 
-# 3. Restart Cloud Run to pick up secrets
+# 4. Restart Cloud Run to pick up secrets
 gcloud run services update pattern-miner --region us-central1
+```
+
+### If Secrets Already Exist (Default)
+
+```bash
+# Terraform will automatically use existing secrets
+# Set in terraform.tfvars:
+create_secrets = false  # This is the default
+
+# Just deploy
+terraform apply
 ```
 
 ## terraform.tfvars Configuration

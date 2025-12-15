@@ -33,7 +33,12 @@ resource "google_project_service" "secretmanager_api" {
 }
 
 # Create Secret Manager secrets for sensitive data
+# Secrets - Create or Reference Existing
+# Use create_secrets=true to create new secrets
+# Use create_secrets=false to reference existing secrets (default)
+
 resource "google_secret_manager_secret" "github_token" {
+  count     = var.create_secrets ? 1 : 0
   secret_id = "GITHUB_TOKEN"
 
   replication {
@@ -43,7 +48,13 @@ resource "google_secret_manager_secret" "github_token" {
   depends_on = [google_project_service.secretmanager_api]
 }
 
+data "google_secret_manager_secret" "github_token_existing" {
+  count     = var.create_secrets ? 0 : 1
+  secret_id = "GITHUB_TOKEN"
+}
+
 resource "google_secret_manager_secret" "anthropic_api_key" {
+  count     = var.create_secrets ? 1 : 0
   secret_id = "ANTHROPIC_API_KEY"
 
   replication {
@@ -51,6 +62,11 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
   }
 
   depends_on = [google_project_service.secretmanager_api]
+}
+
+data "google_secret_manager_secret" "anthropic_api_key_existing" {
+  count     = var.create_secrets ? 0 : 1
+  secret_id = "ANTHROPIC_API_KEY"
 }
 
 # Database password secret
@@ -90,13 +106,13 @@ resource "google_service_account" "pattern_miner" {
 
 # Grant service account access to secrets
 resource "google_secret_manager_secret_iam_member" "github_token_access" {
-  secret_id = google_secret_manager_secret.github_token.id
+  secret_id = var.create_secrets ? google_secret_manager_secret.github_token[0].id : data.google_secret_manager_secret.github_token_existing[0].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.pattern_miner.email}"
 }
 
 resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
-  secret_id = google_secret_manager_secret.anthropic_api_key.id
+  secret_id = var.create_secrets ? google_secret_manager_secret.anthropic_api_key[0].id : data.google_secret_manager_secret.anthropic_api_key_existing[0].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.pattern_miner.email}"
 }
@@ -210,7 +226,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
         name = "GITHUB_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.github_token.secret_id
+            secret  = var.create_secrets ? google_secret_manager_secret.github_token[0].secret_id : data.google_secret_manager_secret.github_token_existing[0].secret_id
             version = "latest"
           }
         }
@@ -220,7 +236,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
         name = "ANTHROPIC_API_KEY"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.anthropic_api_key.secret_id
+            secret  = var.create_secrets ? google_secret_manager_secret.anthropic_api_key[0].secret_id : data.google_secret_manager_secret.anthropic_api_key_existing[0].secret_id
             version = "latest"
           }
         }

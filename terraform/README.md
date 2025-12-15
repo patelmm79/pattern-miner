@@ -117,22 +117,24 @@ gcloud compute networks vpc-access connectors describe devnexus-connector --regi
 gcloud secrets describe POSTGRES_PASSWORD
 ```
 
-### 3. Add Pattern-miner Secrets to Secret Manager
+### 3. Create Secrets in Secret Manager
 
+**If secrets don't exist yet:**
 ```bash
-# Add GitHub token (pattern-miner specific)
+# Create secrets with values
 echo -n "ghp_your_github_token_here" | gcloud secrets create GITHUB_TOKEN --data-file=-
-
-# Add Anthropic API key (pattern-miner specific)
 echo -n "sk-ant-your_anthropic_key_here" | gcloud secrets create ANTHROPIC_API_KEY --data-file=-
+echo -n "your_db_password" | gcloud secrets create PATTERN_MINER_DB_PASSWORD --data-file=-
 ```
 
-**Note:** POSTGRES_PASSWORD is shared with dev-nexus and should already exist.
-
-If secrets already exist, use `versions add` instead:
+**If secrets already exist:**
 ```bash
-echo -n "your_new_token" | gcloud secrets versions add GITHUB_TOKEN --data-file=-
-echo -n "your_new_key" | gcloud secrets versions add ANTHROPIC_API_KEY --data-file=-
+# Just update the values
+echo -n "ghp_your_token" | gcloud secrets versions add GITHUB_TOKEN --data-file=-
+echo -n "sk-ant-your_key" | gcloud secrets versions add ANTHROPIC_API_KEY --data-file=-
+echo -n "your_password" | gcloud secrets versions add PATTERN_MINER_DB_PASSWORD --data-file=-
+
+# Terraform will automatically use existing secrets (create_secrets=false by default)
 ```
 
 ### 4. Deploy with Terraform

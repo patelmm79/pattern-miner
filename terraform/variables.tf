@@ -29,6 +29,12 @@ variable "auto_build_image" {
   default     = true
 }
 
+variable "create_secrets" {
+  description = "Create new secrets in Secret Manager (set false if secrets already exist)"
+  type        = bool
+  default     = false  # Default to using existing secrets
+}
+
 variable "cpu" {
   description = "CPU allocation for Cloud Run service"
   type        = string
