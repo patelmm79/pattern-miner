@@ -162,16 +162,6 @@ output "postgres_internal_ip" {
   value       = var.create_postgres_vm ? google_compute_instance.postgres[0].network_interface[0].network_ip : "N/A"
 }
 
-output "postgres_vm_name" {
-  description = "Name of PostgreSQL VM"
-  value       = var.create_postgres_vm ? google_compute_instance.postgres[0].name : "N/A"
-}
-
-output "postgres_backup_bucket" {
-  description = "Cloud Storage bucket for PostgreSQL backups"
-  value       = var.create_postgres_vm ? google_storage_bucket.postgres_backups[0].name : "N/A"
-}
-
 output "vpc_connector_name" {
   description = "VPC Connector name for Cloud Run"
   value       = var.create_postgres_vm ? google_vpc_access_connector.pattern_miner[0].name : var.vpc_connector
