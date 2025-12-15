@@ -1,4 +1,7 @@
 # pattern_miner/a2a/skills/results.py
+from typing import Dict, Any, List
+from pattern_miner.a2a.base import BaseSkill
+
 
 class GetAnalysisResultsSkill(BaseSkill):
     """Retrieve stored analysis results"""
