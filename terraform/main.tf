@@ -183,11 +183,6 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
       }
 
       env {
-        name  = "PORT"
-        value = "8080"
-      }
-
-      env {
         name  = "REQUIRE_AUTH"
         value = var.require_auth ? "true" : "false"
       }
