@@ -127,7 +127,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
     }
 
     containers {
-      image = var.container_image
+      image = var.auto_build_image ? local.built_image_url : var.container_image
 
       ports {
         container_port = 8080
@@ -236,7 +236,8 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
   depends_on = [
     google_project_service.run_api,
     google_secret_manager_secret_iam_member.github_token_access,
-    google_secret_manager_secret_iam_member.anthropic_key_access
+    google_secret_manager_secret_iam_member.anthropic_key_access,
+    null_resource.build_image
   ]
 }
 

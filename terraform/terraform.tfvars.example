@@ -4,11 +4,14 @@
 # Required: Your GCP Project ID
 project_id = "your-gcp-project-id"
 
-# Required: Container image URL
-# Option 1: Google Container Registry (GCR)
-container_image = "gcr.io/your-gcp-project-id/pattern-miner:latest"
-# Option 2: Artifact Registry
-# container_image = "us-docker.pkg.dev/your-gcp-project-id/pattern-miner/app:latest"
+# Container Image Configuration
+# Option 1: Auto-build with Cloud Build (recommended)
+auto_build_image = true  # Terraform will build the image automatically
+# container_image will be auto-generated: gcr.io/PROJECT_ID/pattern-miner:latest
+
+# Option 2: Use pre-built image
+# auto_build_image = false
+# container_image = "gcr.io/your-gcp-project-id/pattern-miner:latest"
 
 # Optional: GCP region (default: us-central1)
 region = "us-central1"

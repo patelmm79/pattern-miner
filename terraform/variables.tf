@@ -18,8 +18,15 @@ variable "service_name" {
 }
 
 variable "container_image" {
-  description = "Container image URL (e.g., gcr.io/project-id/pattern-miner:latest or us-docker.pkg.dev/project-id/pattern-miner/app:latest)"
+  description = "Container image URL (auto-built by Cloud Build if not specified)"
   type        = string
+  default     = ""
+}
+
+variable "auto_build_image" {
+  description = "Automatically build Docker image using Cloud Build"
+  type        = bool
+  default     = true
 }
 
 variable "cpu" {

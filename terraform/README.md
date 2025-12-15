@@ -98,9 +98,11 @@ nano terraform.tfvars  # or use your favorite editor
 
 **Required variables:**
 - `project_id`: Your GCP project ID
-- `container_image`: Full image URL from step 1
+- `auto_build_image`: Set to `true` (Terraform will build image via Cloud Build)
 
-### 3. Verify dev-nexus Prerequisites
+**Note**: Terraform will automatically build your Docker image using Cloud Build. No manual `docker build` needed!
+
+### 2. Verify dev-nexus Prerequisites (if sharing PostgreSQL)
 
 Before deploying pattern-miner, ensure dev-nexus is set up:
 
@@ -115,7 +117,7 @@ gcloud compute networks vpc-access connectors describe devnexus-connector --regi
 gcloud secrets describe POSTGRES_PASSWORD
 ```
 
-### 4. Add Pattern-miner Secrets to Secret Manager
+### 3. Add Pattern-miner Secrets to Secret Manager
 
 ```bash
 # Add GitHub token (pattern-miner specific)
@@ -134,6 +136,12 @@ echo -n "your_new_key" | gcloud secrets versions add ANTHROPIC_API_KEY --data-fi
 ```
 
 ### 4. Deploy with Terraform
+
+Terraform will automatically:
+1. ✅ Build Docker image using Cloud Build
+2. ✅ Push to Google Container Registry
+3. ✅ Create all infrastructure
+4. ✅ Deploy Cloud Run service
 
 ```bash
 # Initialize Terraform
@@ -274,26 +282,39 @@ Pattern mining runs typically cost $0.10-0.30 in Claude API calls.
 
 ## Updating the Deployment
 
+### Code Changes
+
 When you make code changes:
 
 ```bash
-# 1. Rebuild and push Docker image
-docker build -t gcr.io/${PROJECT_ID}/pattern-miner:latest .
-docker push gcr.io/${PROJECT_ID}/pattern-miner:latest
-
-# 2. Update Cloud Run (no need to run terraform apply)
-# Cloud Run will automatically pull the latest image on next cold start
-# Or force update:
-gcloud run deploy pattern-miner \
-  --image gcr.io/${PROJECT_ID}/pattern-miner:latest \
-  --region us-central1
+# Simply run terraform apply
+# Terraform will rebuild the image and redeploy
+terraform apply
 ```
 
-**To update infrastructure:**
+Terraform will:
+1. Detect code changes
+2. Rebuild Docker image via Cloud Build
+3. Update Cloud Run to use new image
+
+### Infrastructure Changes
+
 ```bash
 # Modify terraform.tfvars or *.tf files
 # Then apply changes
+terraform plan
 terraform apply
+```
+
+### Manual Image Build (if needed)
+
+```bash
+# Build without Terraform
+gcloud builds submit --config=cloudbuild.yaml
+
+# Or use Docker directly
+docker build -t gcr.io/${PROJECT_ID}/pattern-miner:latest .
+docker push gcr.io/${PROJECT_ID}/pattern-miner:latest
 ```
 
 ## Viewing Logs
