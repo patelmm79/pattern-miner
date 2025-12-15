@@ -1,0 +1,74 @@
+# Pattern Miner - Terraform Variables Example
+# Copy this file to terraform.tfvars and update with your values
+
+# Required: Your GCP Project ID
+project_id = "your-gcp-project-id"
+
+# Required: Container image URL
+# Option 1: Google Container Registry (GCR)
+container_image = "gcr.io/your-gcp-project-id/pattern-miner:latest"
+# Option 2: Artifact Registry
+# container_image = "us-docker.pkg.dev/your-gcp-project-id/pattern-miner/app:latest"
+
+# Optional: GCP region (default: us-central1)
+region = "us-central1"
+
+# Optional: Service name (default: pattern-miner)
+service_name = "pattern-miner"
+
+# Optional: Resource allocation
+cpu    = "1"
+memory = "2Gi"
+
+# Optional: Auto-scaling configuration
+min_instances = 0
+max_instances = 10
+
+# Optional: Public access (set to false to require authentication)
+allow_public_access = true
+
+# Optional: Dev-nexus integration
+dev_nexus_url = "https://dev-nexus-xxxxx-uc.a.run.app"
+
+# Optional: Enable scheduled pattern mining (requires Cloud Scheduler)
+enable_scheduled_mining = false
+mining_schedule         = "0 9 * * 1"  # Every Monday at 9 AM
+
+# Optional: Require authentication for A2A endpoints
+require_auth = false
+
+# Database Configuration
+use_database = true
+
+# PostgreSQL VM Configuration (creates own VM like dev-nexus)
+create_postgres_vm = true
+postgres_machine_type = "e2-micro"  # Free tier eligible
+postgres_zone = "us-central1-a"
+postgres_disk_size_gb = 30
+postgres_vm_password = "CHANGE-ME-SECURE-PASSWORD"  # Will be stored in Secret Manager
+enable_pgvector = false  # Set true if you need vector similarity search
+
+# Database settings
+db_name = "pattern_miner"
+db_user = "pattern_miner"
+db_password_secret = "PATTERN_MINER_DB_PASSWORD"
+
+# VPC Configuration
+create_vpc = true  # Creates new VPC network
+vpc_cidr_range = "10.8.0.0/28"
+vpc_connector_cidr = "10.8.0.0/28"
+
+# Security
+allow_ssh = true
+ssh_allowed_cidrs = ["0.0.0.0/0"]  # RESTRICT THIS IN PRODUCTION!
+
+# Backup Configuration
+backup_retention_days = 30
+
+# ===== Alternative: Use Existing PostgreSQL (e.g., from dev-nexus) =====
+# create_postgres_vm = false
+# vpc_connector = "devnexus-connector"
+# db_host = "10.8.0.2"  # IP of existing PostgreSQL VM
+# db_name = "devnexus"
+# db_user = "pattern_miner"  # Create this user in dev-nexus database
+# db_password_secret = "PATTERN_MINER_DB_PASSWORD"

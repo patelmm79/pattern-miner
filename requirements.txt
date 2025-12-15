@@ -17,3 +17,6 @@ aiofiles==23.2.1
 
 # Scheduling (optional - for automated runs)
 apscheduler==3.10.4
+
+# Database (PostgreSQL - shared with dev-nexus)
+asyncpg==0.29.0

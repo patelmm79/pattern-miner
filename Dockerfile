@@ -18,11 +18,11 @@ COPY pattern_miner/ pattern_miner/
 COPY config/ config/
 
 # Expose port
-EXPOSE 8081
+EXPOSE 8080
 
 # Set environment variables
-ENV PORT=8081
+ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "-m", "uvicorn", "pattern_miner.a2a.server:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["python", "-m", "uvicorn", "pattern_miner.a2a.skills.server:app", "--host", "0.0.0.0", "--port", "8080"]
