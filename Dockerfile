@@ -25,4 +25,4 @@ ENV PORT=8081
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["uvicorn", "pattern_miner.app:app", "--host", "0.0.0.0", "--port", "8081"]
+CMD ["python", "-m", "uvicorn", "pattern_miner.a2a.server:app", "--host", "0.0.0.0", "--port", "8080"]

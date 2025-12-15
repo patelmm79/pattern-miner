@@ -34,19 +34,17 @@ docker push $IMAGE_NAME
 
 # Deploy to Cloud Run
 echo "☁️  Deploying to Cloud Run..."
-gcloud run deploy $SERVICE_NAME \
-  --image $IMAGE_NAME \
+gcloud run deploy pattern-miner \
+  --image gcr.io/${PROJECT_ID}/pattern-miner:latest \
+  --region ${REGION} \
   --platform managed \
-  --region $REGION \
-  --allow-unauthenticated \
-  --memory 512Mi \
+  --port 8080 \
+  --memory 2Gi \
   --cpu 1 \
-  --timeout 600 \
-  --max-instances 5 \
-  --set-env-vars ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" \
-  --set-env-vars GITHUB_TOKEN="${GITHUB_TOKEN}" \
-  --set-env-vars DEV_NEXUS_URL="${DEV_NEXUS_URL:-}" \
-  --set-env-vars WEBHOOK_URL="${WEBHOOK_URL:-}"
+  --allow-unauthenticated \
+  --set-env-vars="AGENT_URL=https://pattern-miner-${PROJECT_ID}.a.run.app" \
+  --set-secrets="GITHUB_TOKEN=GITHUB_TOKEN:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest"
+
 
 # Get service URL
 SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.url)")
