@@ -120,13 +120,11 @@ resource "google_compute_instance" "postgres" {
   }
 
   metadata = {
-    startup-script = templatefile("${path.module}/scripts/postgres-startup.sh", {
-      db_name         = var.db_name
-      db_user         = var.db_user
-      db_password     = var.postgres_vm_password
-      backup_bucket   = google_storage_bucket.postgres_backups[0].name
-      enable_pgvector = var.enable_pgvector
-    })
+    db_name         = var.db_name
+    db_user         = var.db_user
+    db_password     = var.postgres_vm_password
+    backup_bucket   = google_storage_bucket.postgres_backups[0].name
+    enable_pgvector = tostring(var.enable_pgvector)
   }
 
   metadata_startup_script = file("${path.module}/scripts/postgres-startup.sh")

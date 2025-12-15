@@ -4,12 +4,15 @@
 
 set -e
 
-# Variables (will be templated by Terraform)
-DB_NAME="${db_name}"
-DB_USER="${db_user}"
-DB_PASSWORD="${db_password}"
-BACKUP_BUCKET="${backup_bucket}"
-ENABLE_PGVECTOR="${enable_pgvector}"
+# Get metadata from GCP instance metadata server
+METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance/attributes"
+METADATA_HEADER="Metadata-Flavor: Google"
+
+DB_NAME=$(curl -s -H "${METADATA_HEADER}" "${METADATA_URL}/db_name")
+DB_USER=$(curl -s -H "${METADATA_HEADER}" "${METADATA_URL}/db_user")
+DB_PASSWORD=$(curl -s -H "${METADATA_HEADER}" "${METADATA_URL}/db_password")
+BACKUP_BUCKET=$(curl -s -H "${METADATA_HEADER}" "${METADATA_URL}/backup_bucket")
+ENABLE_PGVECTOR=$(curl -s -H "${METADATA_HEADER}" "${METADATA_URL}/enable_pgvector")
 
 echo "Starting PostgreSQL installation for Pattern Miner..."
 
@@ -116,23 +119,29 @@ EOF
 echo "Database schema created successfully"
 
 # Set up automated backups
-cat > /usr/local/bin/backup-postgres.sh <<'BACKUP_SCRIPT'
+cat > /usr/local/bin/backup-postgres.sh <<BACKUP_SCRIPT
 #!/bin/bash
 set -e
 
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="/tmp/pattern_miner_backup_$TIMESTAMP.sql.gz"
+# Get metadata
+METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance/attributes"
+METADATA_HEADER="Metadata-Flavor: Google"
+DB_NAME=\$(curl -s -H "\${METADATA_HEADER}" "\${METADATA_URL}/db_name")
+BACKUP_BUCKET=\$(curl -s -H "\${METADATA_HEADER}" "\${METADATA_URL}/backup_bucket")
+
+TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="/tmp/pattern_miner_backup_\${TIMESTAMP}.sql.gz"
 
 # Perform backup
-sudo -u postgres pg_dump ${DB_NAME} | gzip > $BACKUP_FILE
+sudo -u postgres pg_dump \${DB_NAME} | gzip > \$BACKUP_FILE
 
 # Upload to Cloud Storage
-gsutil cp $BACKUP_FILE gs://${BACKUP_BUCKET}/backups/
+gsutil cp \$BACKUP_FILE gs://\${BACKUP_BUCKET}/backups/
 
 # Clean up local backup
-rm $BACKUP_FILE
+rm \$BACKUP_FILE
 
-echo "Backup completed: $TIMESTAMP"
+echo "Backup completed: \$TIMESTAMP"
 BACKUP_SCRIPT
 
 chmod +x /usr/local/bin/backup-postgres.sh
@@ -148,8 +157,13 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 EOF
 
 # Create monitoring script
-cat > /usr/local/bin/postgres-health.sh <<'HEALTH_SCRIPT'
+cat > /usr/local/bin/postgres-health.sh <<HEALTH_SCRIPT
 #!/bin/bash
+# Get metadata
+METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance/attributes"
+METADATA_HEADER="Metadata-Flavor: Google"
+DB_NAME=\$(curl -s -H "\${METADATA_HEADER}" "\${METADATA_URL}/db_name")
+
 echo "=== PostgreSQL Health Check ==="
 echo "Uptime:"
 systemctl status postgresql | grep Active
@@ -158,10 +172,10 @@ echo -e "\nConnections:"
 sudo -u postgres psql -c "SELECT count(*) as connections FROM pg_stat_activity;"
 
 echo -e "\nDatabase size:"
-sudo -u postgres psql -d ${DB_NAME} -c "SELECT pg_size_pretty(pg_database_size('${DB_NAME}'));"
+sudo -u postgres psql -d \${DB_NAME} -c "SELECT pg_size_pretty(pg_database_size('\${DB_NAME}'));"
 
 echo -e "\nTop queries:"
-sudo -u postgres psql -d ${DB_NAME} -c "SELECT query, calls, total_time, mean_time FROM pg_stat_statements ORDER BY total_time DESC LIMIT 5;"
+sudo -u postgres psql -d \${DB_NAME} -c "SELECT query, calls, total_time, mean_time FROM pg_stat_statements ORDER BY total_time DESC LIMIT 5;"
 HEALTH_SCRIPT
 
 chmod +x /usr/local/bin/postgres-health.sh
