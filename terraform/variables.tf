@@ -148,7 +148,7 @@ variable "vpc_connector_region" {
 variable "create_postgres_vm" {
   description = "Create a dedicated PostgreSQL VM (like dev-nexus architecture)"
   type        = bool
-  default     = true
+  default     = false  # Default to sharing dev-nexus PostgreSQL
 }
 
 variable "postgres_machine_type" {
