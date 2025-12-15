@@ -46,14 +46,13 @@ create_postgres_vm = true
 postgres_machine_type = "e2-micro"  # Free tier eligible
 postgres_zone = "us-central1-a"
 postgres_disk_size_gb = 30
-postgres_vm_password = "CHANGE-ME-SECURE-PASSWORD"  # Will be stored in Secret Manager
+postgres_vm_password = "CHANGE-ME-SECURE-PASSWORD"  # Actual password - will be stored in Secret Manager
 enable_pgvector = false  # Set true if you need vector similarity search
 
 # Database settings
 db_name = "pattern_miner"
 db_user = "pattern_miner"
-db_password_secret = "PATTERN_MINER_DB_PASSWORD"  # Secret name (not the password itself!)
-postgres_vm_password = "CHANGE-ME-SECURE-PASSWORD"  # Actual password value
+db_password_secret = "PATTERN_MINER_DB_PASSWORD"  # Secret name in Secret Manager
 
 # VPC Configuration
 create_vpc = true  # Creates new VPC network
