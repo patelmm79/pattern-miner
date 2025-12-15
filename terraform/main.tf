@@ -221,7 +221,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
         name = "GITHUB_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = var.create_secrets ? google_secret_manager_secret.github_token[0].secret_id : data.google_secret_manager_secret.github_token_existing[0].secret_id
+            secret  = "GITHUB_TOKEN"
             version = "latest"
           }
         }
@@ -231,7 +231,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
         name = "ANTHROPIC_API_KEY"
         value_source {
           secret_key_ref {
-            secret  = var.create_secrets ? google_secret_manager_secret.anthropic_api_key[0].secret_id : data.google_secret_manager_secret.anthropic_api_key_existing[0].secret_id
+            secret  = "ANTHROPIC_API_KEY"
             version = "latest"
           }
         }
@@ -243,7 +243,7 @@ resource "google_cloud_run_v2_service" "pattern_miner" {
           name = "DB_PASSWORD"
           value_source {
             secret_key_ref {
-              secret  = var.create_postgres_vm ? google_secret_manager_secret.db_password[0].secret_id : data.google_secret_manager_secret.db_password_existing[0].secret_id
+              secret  = var.db_password_secret
               version = "latest"
             }
           }
