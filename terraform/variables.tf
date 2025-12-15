@@ -173,6 +173,7 @@ variable "postgres_vm_password" {
   description = "Password for PostgreSQL (will be set in VM, also store in Secret Manager)"
   type        = string
   sensitive   = true
+  default     = ""  # Not needed when using existing PostgreSQL
 }
 
 variable "enable_pgvector" {
